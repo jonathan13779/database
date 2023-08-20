@@ -58,10 +58,22 @@ class SqlBuilder{
         if(count($whereArr) > 0){
             $this->sqlArr[] = 'WHERE ';
             foreach($whereArr as $where){
+                if ($where['operator'] == 'IN'){
+                    $this->whereIn($where['field'], $where['value']);                    
+                    continue;
+                }
                 $this->sqlArr[] = $where['field'] . ' ' . $where['operator'] . ' ?';
                 $this->params[] = $where['value'];
             }
         }
+    }
+
+    private function whereIn($field, $values): void{
+        foreach($values as $value){
+            $this->sqlValues[] = '?';
+            $this->params[] = $value;
+        }
+        $this->sqlArr[] = $field . ' IN (' . implode(', ', $this->sqlValues) . ')';
     }
     
     public function getParams(): array{

@@ -4,6 +4,7 @@ namespace Jonathan13779\Database\Tests;
 
 use Jonathan13779\Database\Model\Model;
 use Jonathan13779\Database\Tests\AccionTipoModel;
+use Jonathan13779\Database\Tests\PuestoModel;
 
 class AccionModel extends Model{
 
@@ -16,4 +17,9 @@ class AccionModel extends Model{
             'fk_tipo_id'
         );
     }    
+    public function puesto()
+    {
+        return $this->toOne(PuestoModel::class, 'id', 'fk_puesto_id');
+    }
+
 }

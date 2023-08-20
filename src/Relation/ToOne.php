@@ -5,6 +5,7 @@ namespace Jonathan13779\Database\Relation;
 use Jonathan13779\Database\Model\Model;
 use Jonathan13779\Database\Relation\Relation;
 use Jonathan13779\Database\Query\QueryBuilder;
+use Jonathan13779\Database\Model\ProcessedRelation;
 
 class ToOne extends Relation{
 
@@ -20,6 +21,22 @@ class ToOne extends Relation{
                 $toModel,
                 $toKey
             );
+    }
+
+    public function __invoke(?string $relationToProcess = null, $chain = null)
+    {
+        $queryBuilder = parent::__invoke($relationToProcess);
+        if ($chain){
+            $queryBuilder->method($chain);
+        }
+        if (!$relationToProcess){
+            return $queryBuilder->fetch();
+        }
+
+        $queryBuilder->getRelation();
+        
+        $processedRelation = new ProcessedRelation($relationToProcess, $this);
+        return $processedRelation;
     }
 
     public function getModel(): Model{
