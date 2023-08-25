@@ -200,15 +200,6 @@ class QueryBuilder{
             $this->model->prepareRelation($relation);
         }
 
-        foreach($this->methods as $method){
-            $this->model->executeMethod($method);
-
-            /*
-            $methodResult = $this->model->{$method}();
-            $this->model->addMethod($method, $methodResult);
-            */
-        }
-
         return $this->model;
     }
 
@@ -226,40 +217,11 @@ class QueryBuilder{
             $collection->add($model);
         }
         $this->model->setCollection($collection);
-        /*
-        foreach($this->methods as $method){
-            $this->model->processRelation($method);
-            //$methodResult = $this->model->{$method}($method);
-            //$this->model->addMethod($method, $methodResult);
-        }
-        */
         
         foreach($this->relations as $relation){
             $this->model->prepareRelation($relation);
-            //$methodResult = $this->model->{$method}($method);
-            //$this->model->addMethod($method, $methodResult);
         }
         return $collection;
-/*print_r($this->model->getCollection()->toArray()[1]);
-
-        foreach($data as $row){
-            $class = get_class($this->model);
-            $model = new $class();
-            $model->setRow($row);
-
-            foreach($this->methods as $method){
-                $relatedItem = $this->model->getProcessedRelation($row, $method);
-                $model->addMethod($method, $relatedItem);   
-            }
-            $collection->add($model);
-            
-        }
-        return $collection;
-
-        //preparar la coleccion con los rows de la relacion
-
-        return $this->model;
-  */      
     }
 
 
