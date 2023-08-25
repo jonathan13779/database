@@ -43,16 +43,21 @@ class ModelTest extends TestCase
     public function test_debe_agregar_relacion_ansiosa_a_uno()
     {
         $accionModel = new AccionModel();
-        $accionModel()->method('tipoAccion')->fetch();
+        $accionModel()
+        ->relation('tipoAccion')
+        ->fetch();
         
         $this->assertTrue(true);
     }
 
-    public function test_debe_agregar_relacion_ansiosa_a_uno_desde_multiples_registros()
+    public function test_debe_agregar_relacion_ansiosa_desde_multiples_registros()
     {
         $accionModel = new AccionModel();
-        $data = $accionModel()->method('tipoAccion')->get();
-        var_dump($data->toArray()[0]);
+        $data = $accionModel()
+        ->relation('tipoAccion')
+        ->relation('puesto.unidadRegional')
+        ->get();
+        //print_r($data->toArray()[0]);
         $this->assertTrue(true);
     }
 
@@ -60,8 +65,52 @@ class ModelTest extends TestCase
         $accionModel = new AccionModel();
         //.unidadRegional
         //$accionModel()->method('puesto')->fetch();
-        $accionModel()->method('tipoAccion')->method('puesto')->method('puesto.unidadRegional')->fetch();
-        print_r($accionModel);
+        $builder = $accionModel()
+        ->relation('tipoAccion')
+        //->relation('puesto')
+        ->relation('puesto.unidadRegional')
+        //->relation('puesto.unidadRegional.unidadRegionalSelf')
+        ->fetch();
+        //print_r($builder);
+        //exit;
+        //print_r($accionModel);
+        $this->assertTrue(true);
+    }
+
+    public function test_debe_filtrar_si_existe_la_relacion(){
+        $accionModel = new AccionModel();
+        $builder = $accionModel()
+        ->hasRelation('tipoAccion')
+        ->hasRelation('puesto.unidadRegional')
+        ->fetch();
+        //print_r($builder);
+        //print_r($accionModel);
+        $this->assertTrue(true);
+    }
+
+    public function test_debe_ejecutar_where_encapsulado(){
+        $accionModel = new AccionModel();
+        $builder = $accionModel()
+        /*->where(function($query){
+            $query->where(function($query){
+                $query->where('nombre','Ipsum Quia Rerum');
+            });
+        });*/
+        ->where('nombre','Ipsum Quia Rerum');
+        //->fetch();
+        //print_r($builder->getQuery()->getQuery());
+        //print_r($accionModel);
+        $this->assertTrue(true);
+
+    }
+
+    public function test_debe_ejecutar_una_relacion_muchos(){
+        $puesto = new PuestoModel();
+        $data = $puesto()
+        ->where('id', 'c574ebc2-dedd-4853-a71b-3116d5203a24')
+        ->relation('acciones.tipoAccion')
+        ->fetch();
+        //print_r($data);
         $this->assertTrue(true);
     }
 }

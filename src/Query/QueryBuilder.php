@@ -18,6 +18,8 @@ class QueryBuilder{
     private array $joinArr = [];
     private array $whereArr = [];
     private array $methods = [];
+    private array $relations = [];
+    private array $hasRelations = [];
 
     public function __construct(){
     }
@@ -75,7 +77,18 @@ class QueryBuilder{
     public function where(...$params): QueryBuilder{
         $field = $params[0];
         $operator = '=';
-        $value = $params[1];
+        if (isset($params[1])){
+            $value = $params[1];
+        }
+        
+
+        if (is_callable($field)){
+            $this->whereArr[] = [
+                'callback' => $field
+            ];
+            return $this;
+        }
+
         if(count($params) === 3){
             $operator = $params[1];
             $value = $params[2];
@@ -84,6 +97,14 @@ class QueryBuilder{
             'field' => $field,
             'operator' => $operator,
             'value' => $value
+        ];
+        return $this;
+    }
+
+    public function whereSql(string $sql, array $params = []): QueryBuilder{
+        $this->whereArr[] = [
+            'sql' => $sql,
+            'params' => $params
         ];
         return $this;
     }
@@ -102,6 +123,72 @@ class QueryBuilder{
         return $this;
     }
 
+    public function relation(string $relation): QueryBuilder
+    {
+        $relations = explode('.', $relation);
+        $node = &$this->relations;
+        foreach($relations as $relation){
+            if(!isset($node[$relation])){
+                if (isset($node['childs'])){
+                    $node['childs'][$relation] = [
+                        'name' => $relation,
+                        'childs' => []
+                    ];
+                    $node = &$node['childs'][$relation];
+                }
+                else{
+                    $node[$relation] = [
+                        'name' => $relation,
+                        'childs' => []
+                    ];
+                    $node = &$node[$relation];
+
+    
+                }
+            }
+            else{
+                $node = &$node[$relation];
+
+            }
+        }
+        
+        return $this;
+    }
+
+
+    public function hasRelation(string $relation): QueryBuilder
+    {
+        $relations = explode('.', $relation);
+        $node = &$this->hasRelations;
+        foreach($relations as $relation){
+            if(!isset($node[$relation])){
+                if (isset($node['childs'])){
+                    $node['childs'][$relation] = [
+                        'name' => $relation,
+                        'childs' => []
+                    ];
+                    $node = &$node['childs'][$relation];
+                }
+                else{
+                    $node[$relation] = [
+                        'name' => $relation,
+                        'childs' => []
+                    ];
+                    $node = &$node[$relation];
+
+    
+                }
+            }
+            else{
+                $node = &$node[$relation];
+
+            }
+        }
+        
+        return $this;
+    }
+
+    
     public function fetch(){
 
         $stmt = $this->prepareStatement();
@@ -109,6 +196,10 @@ class QueryBuilder{
         $data = $stmt->fetch();
         $this->model->setRow($data);
         
+        foreach($this->relations as $relation){
+            $this->model->prepareRelation($relation);
+        }
+
         foreach($this->methods as $method){
             $this->model->executeMethod($method);
 
@@ -127,12 +218,29 @@ class QueryBuilder{
         $data = $stmt->fetchAll();
         $this->model->setRows($data);
         $collection = new Collection();
-        
+        foreach($data as $row){
+            
+            $class = get_class($this->model);
+            $model = new $class();
+            $model->setRow($row);
+            $collection->add($model);
+        }
+        $this->model->setCollection($collection);
+        /*
         foreach($this->methods as $method){
             $this->model->processRelation($method);
             //$methodResult = $this->model->{$method}($method);
             //$this->model->addMethod($method, $methodResult);
         }
+        */
+        
+        foreach($this->relations as $relation){
+            $this->model->prepareRelation($relation);
+            //$methodResult = $this->model->{$method}($method);
+            //$this->model->addMethod($method, $methodResult);
+        }
+        return $collection;
+/*print_r($this->model->getCollection()->toArray()[1]);
 
         foreach($data as $row){
             $class = get_class($this->model);
@@ -151,7 +259,7 @@ class QueryBuilder{
         //preparar la coleccion con los rows de la relacion
 
         return $this->model;
-        
+  */      
     }
 
 
@@ -159,7 +267,6 @@ class QueryBuilder{
         $stmt = $this->prepareStatement();
 
         $data = $stmt->fetchAll();
-        //$this->model->setRows($data);
         $collection = new Collection();
         foreach($data as $row){
             $class = get_class($this->model);
@@ -168,6 +275,11 @@ class QueryBuilder{
             $collection->add($model);
         }
         $this->model->setCollection($collection);
+ 
+
+        foreach($this->relations as $relation){
+            $this->model->prepareRelation($relation);
+        }
         
         
         foreach($this->methods as $method){
@@ -184,8 +296,9 @@ class QueryBuilder{
         return $data;
     }
 
+ 
     private function prepareStatement(): PDOStatement
-    {
+    {        
         $sql = $this->getQuery();
         $connection = $this->model->getConnection();
         $pdo = ConnectorManager::connect($connection);
@@ -197,14 +310,37 @@ class QueryBuilder{
         return $stmt;
     }
 
-
-
     public function sql(){
-        echo new SqlBuilder($this);
+        echo $this->getQuery();
         exit;
     }
 
     public function getQuery(): SqlBuilder{
+        $this->getFilterRelation();
         return new SqlBuilder($this);
     }
+
+    public function getFilterRelation(){
+        /*$model = $this->relation->getModel();;
+        $table = $model->getTable();
+        $fromModel = $this->relation->getFromModel();
+        $fromTable = $fromModel->getTable();
+        $fromKey = $this->relation->getFromKey();
+        $toKey = $this->relation->getToKey();
+        $sql = "
+        select * 
+        from $table where 
+        where $fromTable.$fromKey = $table.$toKey
+        ";
+        echo $sql;
+        exit;*/
+        $sql = '';
+        
+        foreach($this->hasRelations as $hasRelation){
+            $sql = $this->model->getFilterRelation($hasRelation, $this);
+        }
+        return $sql;
+
+    }
+
 }

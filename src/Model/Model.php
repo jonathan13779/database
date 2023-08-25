@@ -3,6 +3,7 @@ namespace Jonathan13779\Database\Model;
 
 use Jonathan13779\Database\Query\QueryBuilder;
 use Jonathan13779\Database\Relation\ToOne;
+use Jonathan13779\Database\Relation\ToMany;
 use Jonathan13779\Database\Model\ProcessedRelation;
 
 abstract class Model{
@@ -52,6 +53,20 @@ abstract class Model{
         return $relation;
     }
 
+    protected function toMany($toModel, $toKey, $fromKey){
+        $relation = new ToMany(
+            new $toModel(),
+            $toKey,
+            $this,
+            $fromKey
+        );
+        if ($this->autoInvoke) {
+            return $relation();
+        }
+        return $relation;
+    }
+
+
     public function setRow(?array $row): void{
         $this->row = $row;
     }
@@ -73,14 +88,30 @@ abstract class Model{
     }
 
     public function getKeysValues(string $field): array{
+        
         if (!is_null($this->rows) || !is_null($this->collection)) {
             return $this->getKeysFromArray($field);
         }
-
+        
         return $this->getKeysFromRow($field);
     }
 
-    public $merge = [];
+    public function prepareRelation(array $relation){
+        $this->autoInvoke = false;
+        $relationName = $relation['name'];
+        $relationObject = $this->$relationName();
+        $relationObject->addRelations($relation);      
+        $this->autoInvoke = true;
+    }
+
+
+    public function getFilterRelation(array $hasRelation, $queryBuilder){
+        $this->autoInvoke = false;
+        $relationName = $hasRelation['name'];
+        $relationObject = $this->$relationName();
+        $relationObject->getFilterExists($hasRelation, $queryBuilder);      
+        $this->autoInvoke = true;  
+    }
 
     public function executeMethod(string $method){
         $chain = explode('.', $method);
@@ -171,6 +202,9 @@ abstract class Model{
         $keys = [];
         foreach($this->collection as $item){
             $keys[] = $item->{$field};
+        }
+        if (count($keys) == 0){
+            return [null];
         }
         return $keys;
     }

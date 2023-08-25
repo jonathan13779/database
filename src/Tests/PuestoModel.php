@@ -13,4 +13,9 @@ class PuestoModel extends Model{
     {
         return $this->toOne(UnidadRegionalModel::class, 'id', 'fk_unidad_regional_id');
     } 
+
+    public function acciones()
+    {
+        return $this->toMany(AccionModel::class, 'fk_puesto_id', 'id');
+    }
 }
