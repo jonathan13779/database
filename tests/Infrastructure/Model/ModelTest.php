@@ -9,19 +9,13 @@ use Jonathan13779\Database\Tests\AccionTipoModel;
 use Jonathan13779\Database\Connection\ConnectorDTO;
 use Jonathan13779\Database\Connection\ConnectorManager;
 use Jonathan13779\Database\Tests\PuestoModel;
+use Jonathan13779\Database\Tests\DataBaseProvider;
 
 class ModelTest extends TestCase
 {
     protected function setUp(): void
     {
-        $connector = new ConnectorDTO(
-            name: 'test',
-            host: 'postgres',
-            database: 'db',
-            username: 'zataca',
-            password: 'zataca'
-        );
-        ConnectorManager::addConnector($connector);        
+        DataBaseProvider::register();     
         parent::setUp();
     }    
     public function test_model()

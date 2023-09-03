@@ -3,6 +3,7 @@
 namespace Jonathan13779\Database\Connection;
 
 use Jonathan13779\Database\Connection\ConnectorDTO;
+use Jonathan13779\Database\Connection\ConnectorProvider;
 use PDO;
 
 class ConnectorManager{
@@ -41,6 +42,10 @@ class ConnectorManager{
         return $pdo;
     }
 
+
+    public static function register(ConnectorProvider $connectorProvider){
+        $connectorProvider::register();
+    }
 
 
 }
