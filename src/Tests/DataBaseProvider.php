@@ -12,7 +12,7 @@ class DataBaseProvider extends ConnectorProvider
         $connector = new ConnectorDTO(
             name: 'test',
             host: 'postgres',
-            database: 'db',
+            database: 'gamerteca',
             username: 'zataca',
             password: 'zataca'
         );

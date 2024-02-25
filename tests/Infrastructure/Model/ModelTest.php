@@ -18,6 +18,7 @@ class ModelTest extends TestCase
         DataBaseProvider::register();     
         parent::setUp();
     }    
+    
     public function test_model()
     {
         $roleModel = new RoleModel();
@@ -46,16 +47,29 @@ class ModelTest extends TestCase
 
     public function test_debe_agregar_relacion_ansiosa_desde_multiples_registros()
     {
+        $memoria_utilizada_inicio = memory_get_usage(true);
+        echo round(memory_get_usage(true)/1048576,2).''.' MB'."\n";
+        $inicio_tiempo = microtime(true);
         $accionModel = new AccionModel();
         $data = $accionModel()
         ->relation('tipoAccion')
         ->relation('puesto.unidadRegional')
         ->get();
+        $fin_tiempo = microtime(true);
+        $tiempo_ejecucion = $fin_tiempo - $inicio_tiempo;
+        $memoria_utilizada = memory_get_usage();
         //print_r($data->toArray()[0]);
+        echo "Tiempo de ejecucion: ".$tiempo_ejecucion." segundos\n";
+        echo "Memoria utilizada: ".($memoria_utilizada - $memoria_utilizada_inicio)." bytes\n";
+        echo round(memory_get_usage(true)/1048576,2).''.' MB'."\n";      
+        exit;        
         $this->assertTrue(true);
     }
 
     public function test_debe_agragar_ralcion_ansiosa_encadenada_desde_un_registro(){
+        $memoria_utilizada_inicio = memory_get_usage();
+        echo round(memory_get_usage()/1048576,2).''.' MB'."\n";
+        $inicio_tiempo = microtime(true);
         $accionModel = new AccionModel();
         //.unidadRegional
         //$accionModel()->method('puesto')->fetch();
@@ -65,9 +79,18 @@ class ModelTest extends TestCase
         ->relation('puesto.unidadRegional')
         //->relation('puesto.unidadRegional.unidadRegionalSelf')
         ->fetch();
+
         //print_r($builder);
         //exit;
         //print_r($accionModel);
+        $fin_tiempo = microtime(true);
+        $tiempo_ejecucion = $fin_tiempo - $inicio_tiempo;
+        $memoria_utilizada = memory_get_usage();
+        //print_r($data->toArray()[0]);
+        echo "Tiempo de ejecucion: ".$tiempo_ejecucion." segundos\n";
+        echo "Memoria utilizada: ".($memoria_utilizada -$memoria_utilizada_inicio )." bytes\n";  
+        echo round(memory_get_usage()/1048576,2).''.' MB'."\n";      
+        exit;
         $this->assertTrue(true);
     }
 
